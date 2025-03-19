@@ -34,5 +34,5 @@ export async function POST(request, response) {
     console.error("Error creating task:", error);
     return NextResponse.json({ message: "Failed to create task", error: error.message }, { status: 500 });
   }
-  revalidatePath("/task")
+  
 }

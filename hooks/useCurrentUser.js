@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 
 function useCurrentUser() {
-    const [currentUser, setCurrentUser] = useState(null);
+    const [currentUser, setCurrentUser] = useState(' ');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
