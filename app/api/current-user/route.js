@@ -41,7 +41,7 @@ export async function GET(req) {
         return NextResponse.json({ success: true, data: user }, { status: 200 });
 
     } catch (error) {
-        console.error("Error fetching current user:", error);
+        // console.error("Error fetching current user:", error);
         return NextResponse.json({ message: "Failed to fetch current user", error: error.message, success: false }, { status: 500 });
     }
 }

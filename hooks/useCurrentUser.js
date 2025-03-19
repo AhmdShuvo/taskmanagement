@@ -39,7 +39,7 @@ function useCurrentUser() {
                     setCurrentUser(null); // Clear user data if fetch fails
                 }
             } catch (err) {
-                console.error("Error fetching current user:", err);
+                // console.error("Error fetching current user:", err);
                 setError(err.message || "An error occurred while fetching user.");
                 setCurrentUser(null);
             } finally {
