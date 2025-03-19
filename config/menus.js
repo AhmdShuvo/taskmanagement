@@ -1018,21 +1018,21 @@ export const menusConfig = {
           //   icon: Envelope,
           //   href: "/email",
           // },
-          {
-            title: "kanban",
-            icon: Monitor,
-            href: "/kanban",
-          },
+          // {
+          //   title: "kanban",
+          //   icon: Monitor,
+          //   href: "/kanban",
+          // },
           {
             title: "task",
             icon: ListFill,
             href: "/task",
           },
-          {
-            title: "project",
-            icon: ClipBoard,
-            href: "/projects",
-          },
+          // {
+          //   title: "project",
+          //   icon: ClipBoard,
+          //   href: "/projects",
+          // },
           // {
           //   title: "calendar",
           //   icon: Calendar,
