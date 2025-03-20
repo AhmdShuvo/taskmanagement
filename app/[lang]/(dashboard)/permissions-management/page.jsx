@@ -1,4 +1,4 @@
-// components/RoleTable.jsx
+// components/PermissionTable.jsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -16,84 +16,95 @@ import toast from 'react-hot-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 
-// Zod schema for role creation/update
-const roleSchema = z.object({
+// Zod schema for permission creation/update
+const permissionSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     description: z.string().optional(),
 });
 
 
-const RoleTable = () => {
-    const [roles, setRoles] = useState([]);
+const PermissionTable = () => {
+    const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [open, setOpen] = useState(false); // Dialog state
+    const [open, setOpen] = useState(false);
+    const [editPermissionId, setEditPermissionId] = useState(null);
 
     const {
         register,
         handleSubmit,
+        setValue,
         formState: { errors },
         reset,
     } = useForm({
-        resolver: zodResolver(roleSchema),
+        resolver: zodResolver(permissionSchema),
         mode: "onChange",
+        defaultValues: {
+            name: "",
+            description: "",
+        },
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        fetchRoles();
+        fetchPermissions();
     }, []);
 
-    const fetchRoles = async () => {
+    const fetchPermissions = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/roles');
+            const response = await fetch('/api/permissions');
             const data = await response.json();
             if (data.success) {
-                setRoles(data.data);
+                setPermissions(data.data);
             } else {
-                toast.error(data.error || 'Failed to fetch roles.');
+                toast.error(data.error || 'Failed to fetch permissions.');
             }
         } catch (error) {
-            console.error('Error fetching roles:', error);
-            toast.error('Error fetching roles.');
+            console.error('Error fetching permissions:', error);
+            toast.error('Error fetching permissions.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDeleteRole = async (roleId) => {
+    const handleDeletePermission = async (permissionId) => {
         try {
-            const response = await fetch(`/api/roles?id=${roleId}`, {
+            const response = await fetch(`/api/permissions?id=${permissionId}`, {
                 method: 'DELETE',
             });
 
             const data = await response.json();
 
             if (response.ok && data.success) {
-                toast.success('Role deleted successfully!');
-                fetchRoles(); // Refresh roles after delete
+                toast.success('Permission deleted successfully!');
+                fetchPermissions();
             } else {
-                toast.error(data.error || 'Failed to delete role.');
+                toast.error(data.error || 'Failed to delete permission.');
             }
         } catch (error) {
-            console.error('Error deleting role:', error);
-            toast.error('Error deleting role.');
+            console.error('Error deleting permission:', error);
+            toast.error('Error deleting permission.');
         }
     };
+
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
         try {
-            const response = await fetch('/api/roles', {
-                method: 'POST',
+            const method = editPermissionId ? 'PUT' : 'POST';
+            const url = editPermissionId ? `/api/permissions?id=${editPermissionId}` : '/api/permissions';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -103,40 +114,61 @@ const RoleTable = () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                toast.success("Role created successfully!");
-                fetchRoles();  // Refresh the role list
-                setOpen(false); // Close the dialog
-                reset();        // Clear the form
+                toast.success(`Permission ${editPermissionId ? 'updated' : 'created'} successfully!`);
+                fetchPermissions();
+                setOpen(false);
+                reset();
+                setEditPermissionId(null);
             } else {
-                toast.error(result.error || "Failed to create role");
+                toast.error(result.error || `Failed to ${editPermissionId ? 'update' : 'create'} permission`);
             }
         } catch (error) {
-            console.error("Error creating role:", error);
+            console.error(`Error ${editPermissionId ? 'updating' : 'creating'} permission:`, error);
             toast.error("An unexpected error occurred.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const handleEditPermission = (permission) => {
+        setEditPermissionId(permission._id);
+        setValue("name", permission.name);
+        setValue("description", permission.description);
+        setOpen(true);
+    };
+
+    const handleCreatePermissionClick = () => {
+        setEditPermissionId(null);
+        reset();
+        setOpen(true);
+    };
+
+    const getDialogTitle = () => {
+        return editPermissionId ? "Edit Permission" : "Create Permission";
+    };
+
+    const getDialogDescription = () => {
+        return editPermissionId ? "Edit an existing permission in the system." : "Add a new permission to the system.";
+    };
 
 
     if (loading) {
-        return <div>Loading roles...</div>;
+        return <div>Loading permissions...</div>;
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2>Roles</h2>
+                <h2>Permissions</h2>
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                        <Button>Create Role</Button>
+                        <Button onClick={handleCreatePermissionClick}>Create Permission</Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                            <DialogTitle>Create Role</DialogTitle>
+                            <DialogTitle>{getDialogTitle()}</DialogTitle>
                             <DialogDescription>
-                                Add a new role to the system.
+                                {getDialogDescription()}
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
@@ -163,16 +195,15 @@ const RoleTable = () => {
 
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Create Role
+                                {editPermissionId ? "Update Permission" : "Create Permission"}
                             </Button>
                         </form>
                     </DialogContent>
                 </Dialog>
             </div>
 
-
             <Table>
-                <TableCaption>A list of your current roles.</TableCaption>
+                <TableCaption>A list of your current permissions.</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[100px]">ID</TableHead>
@@ -182,14 +213,14 @@ const RoleTable = () => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {roles.map((role) => (
-                        <TableRow key={role._id}>
-                            <TableCell className="font-medium">{role._id}</TableCell>
-                            <TableCell>{role.name}</TableCell>
-                            <TableCell>{role.description}</TableCell>
+                    {permissions.map((permission) => (
+                        <TableRow key={permission._id}>
+                            <TableCell className="font-medium">{permission._id}</TableCell>
+                            <TableCell>{permission.name}</TableCell>
+                            <TableCell>{permission.description || <Badge variant="outline">No Description</Badge>}</TableCell>
                             <TableCell className="text-right">
-                                <Button variant="secondary" size="sm">Edit</Button>
-                                <Button variant="destructive" size="sm" onClick={() => handleDeleteRole(role._id)}>Delete</Button>
+                                <Button variant="secondary" size="sm" onClick={() => handleEditPermission(permission)}><Pencil className="h-4 w-4 mr-2" />Edit</Button>
+                                <Button variant="destructive" size="sm" onClick={() => handleDeletePermission(permission._id)}><Trash2 className="h-4 w-4 mr-2" />Delete</Button>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -199,4 +230,4 @@ const RoleTable = () => {
     );
 };
 
-export default RoleTable;
+export default PermissionTable;

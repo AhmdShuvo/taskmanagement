@@ -43,11 +43,11 @@ const DashBoardLayoutProvider = ({ children, trans }) => {
           role.permissions?.some((permission) => permission.name === "Assigned")
       );
 
-      if (!hasAssignedPermission) {
-        // If the user does not have the "Assigned" permission, redirect to the login page
-        router.push("/");
-      }
-    }
+      // if (!hasAssignedPermission) {
+      //   // If the user does not have the "Assigned" permission, redirect to the login page
+      //   router.push("/");
+      // }
+    } 
   }, [currentUser, isLoading, error, router]);
 
   if (isLoading) {

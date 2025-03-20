@@ -41,6 +41,12 @@ import {
   LucideIcon,
   CustomIcon,
   Mail,
+  Users,
+  User,
+  UserGroup,
+  ShieldCheck,
+  LockClosed,
+  Key,
 } from "@/components/svg";
 
 export const menusConfig = {
@@ -992,71 +998,50 @@ export const menusConfig = {
             href: "/dashboard",
             icon: Graph,
           },
-          // {
-          //   title: "Ecommerce",
-          //   href: "/ecommerce",
-          //   icon: Cart,
-          // },
-          // {
-          //   title: "project ",
-          //   href: "/project",
-          //   icon: ClipBoard,
-          // },
+        ],
+      },
+      {
+        title: "User Management",
+        icon: Users,
+        child: [
+          {
+            title: "Users",
+            href: "/user-management",
+            icon: User,
+          },
+          {
+            title: "User Roles",
+            href: "/user-roles-management",
+            icon: UserGroup,
+          },
+          {
+            title: "Roles",
+            href: "/roles-management",
+            icon: ShieldCheck,
+          },
+          {
+            title: "Permissions",
+            href: "/permissions-management",
+            icon: LockClosed,
+          },
+          {
+            title: "Assign Permissions",
+            href: "/assign-permissions",
+            icon: Key,
+          },
         ],
       },
       {
         title: "Application",
         icon: Application,
         child: [
-          // {
-          //   title: "chat",
-          //   icon: Messages,
-          //   href: "/chat",
-          // },
-          // {
-          //   title: "email",
-          //   icon: Envelope,
-          //   href: "/email",
-          // },
-          // {
-          //   title: "kanban",
-          //   icon: Monitor,
-          //   href: "/kanban",
-          // },
           {
             title: "task",
             icon: ListFill,
             href: "/task",
           },
-          // {
-          //   title: "project",
-          //   icon: ClipBoard,
-          //   href: "/projects",
-          // },
-          // {
-          //   title: "calendar",
-          //   icon: Calendar,
-          //   href: "/calendar",
-          // },
-
-      //     {
-      //       title: "project",
-      //       icon: ClipBoard,
-      //       nested: [
-      //         {
-      //           title: "project List",
-      //           icon: ClipBoard,
-      //           href: "/projects",
-      //         },
-      //         {
-      //           title: "project Details",
-      //           icon: ClipBoard,
-      //           href: "/projects/1/overview",
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // },
+        ],
+      },
       // {
       //   title: "Components",
       //   icon: Components,
@@ -1064,7 +1049,7 @@ export const menusConfig = {
       //     {
       //       title: "Base Ui",
       //       icon: Flag,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "accordion",
       //           icon: "heroicons:information-circle",
@@ -1185,7 +1170,7 @@ export const menusConfig = {
       //     {
       //       title: "Advanced Ui",
       //       icon: Book,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "affix",
       //           icon: "heroicons:cube",
@@ -1230,69 +1215,63 @@ export const menusConfig = {
       //   icon: Stacks2,
       //   child: [
       //     {
-      //       title: "Form Elements",
-      //       icon: Note,
-      //       nested: [
-      //         {
-      //           title: "autocomplete",
-      //           href: "/autocomplete",
-      //         },
-      //         {
-      //           title: "checkbox",
-      //           href: "/checkbox",
-      //         },
-      //         {
-      //           title: "file uploader",
-      //           href: "/file-uploader",
-      //         },
-      //         {
-      //           title: "input",
-      //           href: "/input",
-      //         },
-      //         {
-      //           title: "input-group",
-      //           href: "/input2",
-      //         },
+      //       title: "autocomplete",
+      //       href: "/autocomplete",
+      //     },
+      //     {
+      //       title: "checkbox",
+      //       href: "/checkbox",
+      //     },
+      //     {
+      //       title: "file uploader",
+      //       href: "/file-uploader",
+      //     },
+      //     {
+      //       title: "input",
+      //       href: "/input",
+      //     },
+      //     {
+      //       title: "input-group",
+      //       href: "/input2",
+      //     },
 
+      //     {
+      //       title: "input-mask",
+      //       href: "/input-mask",
+      //     },
+      //     {
+      //       title: "radio",
+      //       href: "/radio",
+      //     },
+      //     {
+      //       title: "Range Slider",
+      //       href: "/slider",
+      //     },
+      //     {
+      //       title: "rating",
+      //       href: "/rating",
+      //     },
+      //     {
+      //       title: "select",
+      //       multi_menu: [
       //         {
-      //           title: "input-mask",
-      //           href: "/input-mask",
+      //           title: "Select",
+      //           href: "/form-select",
       //         },
       //         {
-      //           title: "radio",
-      //           href: "/radio",
+      //           title: "React Select",
+      //           href: "/react-select",
       //         },
-      //         {
-      //           title: "Range Slider",
-      //           href: "/slider",
-      //         },
-      //         {
-      //           title: "rating",
-      //           href: "/rating",
-      //         },
-      //         {
-      //           title: "select",
-      //           child: [
-      //             {
-      //               title: "Select",
-      //               href: "/form-select",
-      //             },
-      //             {
-      //               title: "React Select",
-      //               href: "/react-select",
-      //             },
-      //           ],
-      //         },
-      //         {
-      //           title: "switch",
-      //           href: "/switch",
-      //         },
-      //         {
-      //           title: "textarea",
-      //           href: "/textarea",
-      //         },
-            ],
-          },
+      //       ],
+      //     },
+      //     {
+      //       title: "switch",
+      //       href: "/switch",
+      //     },
+      //     {
+      //       title: "textarea",
+      //       href: "/textarea",
+      //     },
       //     {
       //       title: "Form Layout",
       //       icon: ClipBoard2,
@@ -1301,7 +1280,7 @@ export const menusConfig = {
       //     {
       //       title: "Form validation",
       //       icon: Note2,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "Use Controller",
       //           href: "/validation-controller",
@@ -1320,300 +1299,7 @@ export const menusConfig = {
       //   ],
       // },
       // {
-      //   title: "Pages",
-      //   icon: Files,
-      //   child: [
-      //     {
-      //       title: "Authentication",
-      //       icon: Sheild,
-      //       nested: [
-      //         {
-      //           title: "Sign In 01",
-      //           href: "/",
-      //         },
-      //         {
-      //           title: "Sign In 02",
-      //           href: "/auth/login2",
-      //         },
-      //         {
-      //           title: "Sign In 03",
-      //           href: "/auth/login3",
-      //         },
-      //         {
-      //           title: "Sign In 04",
-      //           href: "/auth/login4",
-      //         },
-      //         {
-      //           title: "Sign In 05",
-      //           href: "/auth/login5",
-      //         },
-      //         {
-      //           title: "Sign Up 01",
-      //           href: "./auth/register",
-      //         },
-      //         {
-      //           title: "Sign Up 02",
-      //           href: "/auth/register2",
-      //         },
-      //         {
-      //           title: "Sign Up 03",
-      //           href: "/auth/register3",
-      //         },
-      //         {
-      //           title: "Sign Up 04",
-      //           href: "/auth/register4",
-      //         },
-      //         {
-      //           title: "Sign Up 05",
-      //           href: "/auth/register5",
-      //         },
-      //         {
-      //           title: "Forget Password 01",
-      //           href: "/auth/forgot",
-      //         },
-      //         {
-      //           title: "Forget Password 02",
-      //           href: "/auth/forgot2",
-      //         },
-      //         {
-      //           title: "Forget Password 03",
-      //           href: "/auth/forgot3",
-      //         },
-      //         {
-      //           title: "Forget Password 04",
-      //           href: "/auth/forgot4",
-      //         },
-      //         {
-      //           title: "Forget Password 05",
-      //           href: "/auth/forgot5",
-      //         },
-      //         {
-      //           title: "Lock Screen 01",
-      //           href: "/auth/lock",
-      //         },
-      //         {
-      //           title: "Lock Screen 02",
-      //           href: "/auth/lock2",
-      //         },
-      //         {
-      //           title: "Lock Screen 03",
-      //           href: "/auth/lock3",
-      //         },
-      //         {
-      //           title: "Lock Screen 04",
-      //           href: "/auth/lock4",
-      //         },
-      //         {
-      //           title: "Lock Screen 05",
-      //           href: "/auth/lock5",
-      //         },
-      //         {
-      //           title: "Two-Step 01",
-      //           href: "/auth/verify",
-      //         },
-      //         {
-      //           title: "Two-Step 02",
-      //           href: "/auth/verify2",
-      //         },
-      //         {
-      //           title: "Two-Step 03",
-      //           href: "/auth/verify3",
-      //         },
-      //         {
-      //           title: "Two-Step 04",
-      //           href: "/auth/verify4",
-      //         },
-      //         {
-      //           title: "Two-Step 05",
-      //           href: "/auth/verify5",
-      //         },
-      //         {
-      //           title: "Password Create 01",
-      //           href: "/auth/create-password",
-      //         },
-      //         {
-      //           title: "Password Create 02",
-      //           href: "/auth/create-password2",
-      //         },
-      //         {
-      //           title: "Password Create 03",
-      //           href: "/auth/create-password3",
-      //         },
-      //         {
-      //           title: "Password Create 04",
-      //           href: "/auth/create-password4",
-      //         },
-      //         {
-      //           title: "Password Create 05",
-      //           href: "/auth/create-password5",
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       title: "Error",
-      //       icon: Error,
-      //       nested: [
-      //         {
-      //           title: "Error 401",
-      //           href: "/error-page/401",
-      //         },
-      //         {
-      //           title: "Error 403",
-      //           href: "/error-page/403",
-      //         },
-      //         {
-      //           title: "Error 404",
-      //           href: "/error-page/404",
-      //         },
-      //         {
-      //           title: "Error 419",
-      //           href: "/error-page/419",
-      //         },
-      //         {
-      //           title: "Error 429",
-      //           href: "/error-page/429",
-      //         },
-      //         {
-      //           title: "Error 500",
-      //           href: "/error-page/500",
-      //         },
-      //         {
-      //           title: "Error 503",
-      //           href: "/error-page/503",
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       title: "Utility",
-      //       icon: Diamond,
-      //       nested: [
-      //         {
-      //           title: "Blank Page",
-      //           href: "/blank",
-      //         },
-      //         {
-      //           title: "Comming Soon",
-      //           href: "/utility/comming-soon",
-      //         },
-      //         {
-      //           title: "Under Maintinance",
-      //           href: "/utility/maintinance",
-      //         },
-      //         {
-      //           title: "User Profile",
-      //           child: [
-      //             {
-      //               title: "Overview",
-      //               href: "/user-profile",
-      //             },
-      //             {
-      //               title: "Documents",
-      //               href: "/user-profile/documents",
-      //             },
-      //             {
-      //               title: "Activities",
-      //               href: "/user-profile/activity",
-      //             },
-      //             {
-      //               title: "Settings",
-      //               href: "/user-profile/settings",
-      //             },
-      //           ],
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       title: "Invoice",
-      //       icon: Files,
-      //       nested: [
-      //         {
-      //           title: "Create Invoice",
-      //           href: "/create-invoice",
-      //         },
-      //         {
-      //           title: "Invoice Details",
-      //           href: "/invoice-details",
-      //         },
-      //         {
-      //           title: "Invoice List",
-      //           href: "/invoice-list",
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       title: "Email Template",
-      //       icon: Mail,
-      //       nested: [
-      //         {
-      //           title: "welcome",
-      //           child: [
-      //             {
-      //               title: "Advanced",
-      //               href: "/react-email",
-      //             },
-      //             {
-      //               title: "Basic",
-      //               href: "/react-email/basic-welcome",
-      //             },
-      //           ],
-      //         },
-      //         {
-      //           title: "Authentication",
-      //           child: [
-      //             {
-      //               title: "Reset Password 1",
-      //               href: "/react-email/auth",
-      //             },
-      //             {
-      //               title: "Reset Password 2",
-      //               href: "/react-email/auth/reset-password-2",
-      //             },
-      //             {
-      //               title: "Verify Email",
-      //               href: "/react-email/auth/verify-email",
-      //             },
-      //             {
-      //               title: "Verify Otp",
-      //               href: "/react-email/auth/verify-otp",
-      //             },
-      //           ],
-      //         },
-      //         {
-      //           title: "Ecommerce",
-      //           child: [
-      //             {
-      //               title: "Shop",
-      //               href: "/react-email/ecommerce-shop",
-      //             },
-      //             {
-      //               title: "Shopping Cart",
-      //               href: "/react-email/ecommerce-cart",
-      //             },
-      //           ],
-      //         },
-      //         {
-      //           title: "Corporate",
-      //           href: "/react-email/corporate",
-      //         },
-      //         {
-      //           title: "Agency",
-      //           href: "/react-email/agency",
-      //         },
-      //         {
-      //           title: "Blog",
-      //           href: "/react-email/blog",
-      //         },
-      //         {
-      //           title: "Photography",
-      //           href: "/react-email/photography",
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // },
-
-      // {
-      //   title: "Tables",
+      //   title: "Table",
       //   icon: Grid,
       //   child: [
       //     {
@@ -1633,56 +1319,49 @@ export const menusConfig = {
       //     },
       //   ],
       // },
-
       // {
       //   title: "Diagram",
       //   icon: Chart,
       //   child: [
       //     {
-      //       title: "React Flow",
-      //       icon: ChartBar,
-      //       nested: [
-      //         {
-      //           title: "Overview",
-      //           href: "/diagram-overview",
-      //         },
-      //         {
-      //           title: "Organization Tree",
-      //           href: "/organization-diagram",
-      //         },
-      //         {
-      //           title: "Update Node",
-      //           href: "/diagram-updating",
-      //         },
-      //         {
-      //           title: "Add Node",
-      //           href: "/diagram-add-node",
-      //         },
-      //         {
-      //           title: "Horizontal Flow",
-      //           href: "/horizontal-diagram",
-      //         },
-      //         {
-      //           title: "Dagree Tree",
-      //           href: "/diagram-dagree-tree",
-      //         },
-      //         {
-      //           title: "Download Diagram",
-      //           href: "/download-diagram",
-      //         },
-      //         {
-      //           title: "With Minimap",
-      //           href: "/diagram-with-minimap",
-      //         },
-      //         {
-      //           title: "With Background",
-      //           href: "/diagram-with-background",
-      //         },
-      //         {
-      //           title: "Panel Position",
-      //           href: "/diagram-panel-position",
-      //         },
-      //       ],
+      //       title: "Overview",
+      //       href: "/diagram-overview",
+      //     },
+      //     {
+      //       title: "Organization Tree",
+      //       href: "/organization-diagram",
+      //     },
+      //     {
+      //       title: "Update Node",
+      //       href: "/diagram-updating",
+      //     },
+      //     {
+      //       title: "Add Node",
+      //       href: "/diagram-add-node",
+      //     },
+      //     {
+      //       title: "Horizontal Flow",
+      //       href: "/horizontal-diagram",
+      //     },
+      //     {
+      //       title: "Dagree Tree",
+      //       href: "/diagram-dagree-tree",
+      //     },
+      //     {
+      //       title: "Download Diagram",
+      //       href: "/download-diagram",
+      //     },
+      //     {
+      //       title: "With Minimap",
+      //       href: "/diagram-with-minimap",
+      //     },
+      //     {
+      //       title: "With Background",
+      //       href: "/diagram-with-background",
+      //     },
+      //     {
+      //       title: "Panel Position",
+      //       href: "/diagram-panel-position",
       //     },
       //   ],
       // },
@@ -1693,7 +1372,7 @@ export const menusConfig = {
       //     {
       //       title: "Apex Chart",
       //       icon: ChartBar,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "Line",
       //           href: "/charts-appex-line",
@@ -1789,7 +1468,7 @@ export const menusConfig = {
       //     {
       //       title: "Re Chart",
       //       icon: PretentionChartLine,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "Line",
       //           href: "/charts-rechart-line",
@@ -1838,9 +1517,9 @@ export const menusConfig = {
       //       ],
       //     },
       //     {
-      //       title: "chart js",
+      //       title: "Chart js",
       //       icon: PretentionChartLine2,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "Bar",
       //           href: "/charts-chartjs-bar",
@@ -1899,9 +1578,9 @@ export const menusConfig = {
       //       ],
       //     },
       //     {
-      //       title: "unovis",
+      //       title: "Unovis",
       //       icon: PretentionChartLine,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "Line",
       //           href: "/charts-unovis-line",
@@ -1948,7 +1627,7 @@ export const menusConfig = {
       //     {
       //       title: "Unovis Map",
       //       icon: Map,
-      //       nested: [
+      //       multi_menu: [
       //         {
       //           title: "Leaflet Map",
       //           href: "/map-unovis-leaflet",
@@ -1992,33 +1671,18 @@ export const menusConfig = {
       //   child: [
       //     {
       //       title: "Level 1.1",
-      //       icon: Building,
       //       href: "#",
       //     },
       //     {
       //       title: "Level 2",
-      //       icon: Building2,
-      //       nested: [
+      //       multi_menu: [
       //         {
-      //           title: "Level-2.1",
+      //           title: "Level 2.1",
       //           href: "#",
       //         },
       //         {
       //           title: "Level 2.2",
       //           href: "#",
-      //         },
-      //         {
-      //           title: "Level 3",
-      //           child: [
-      //             {
-      //               title: "Level 3.1",
-      //               href: "#",
-      //             },
-      //             {
-      //               title: "Level 3.2",
-      //               href: "#",
-      //             },
-      //           ],
       //         },
       //       ],
       //     },

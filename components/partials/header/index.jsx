@@ -20,9 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import useUser from "@/hooks/userUser";
-
+import useCurrentUser from "@/hooks/useCurrentUser";
 
 const NavTools = ({ isDesktop, isMobile, sidebarType, handleClockIn, handleClockOut, clockedIn }) => { // Add handleClockIn prop
+  const { currentUser,  error } = useCurrentUser();
   return (
     <div className="nav-tools flex items-center  gap-2">
       {/* {isDesktop && <Language />} */}
@@ -32,7 +33,7 @@ const NavTools = ({ isDesktop, isMobile, sidebarType, handleClockIn, handleClock
       {/* <Inbox /> */}
       {/* <NotificationMessage /> */}
       {/* Conditionally render the clock-in button based on the clockedIn state */}
-      {clockedIn ? (
+      {currentUser?.clockedIn||clockedIn? (
         <Button onClick={handleClockOut}>Clock Out</Button>
       ) : (
         <Button onClick={handleClockIn}>Clock In</Button>
@@ -49,6 +50,7 @@ const NavTools = ({ isDesktop, isMobile, sidebarType, handleClockIn, handleClock
 const Header = ({ handleOpenSearch, trans }) => {
   const { collapsed, sidebarType, setCollapsed, subMenu, setSidebarType } =
     useSidebar();
+    const { currentUser,  error } = useCurrentUser();
   const { layout, navbarType, setLayout } = useThemeStore();
   const { user, image, loading, clockedIn, setClockedIn } = useUser(); // Get clockedIn and setClockedIn from the hook
 
