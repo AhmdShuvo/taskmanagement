@@ -12,8 +12,8 @@ export async function POST(req) {
         const { email, password } = body;
 
         // Check if user exists
-        const user = await User.findOne({ email }).select('+password'); // Explicitly select password
-
+        const user = await User.findOne({ email }).populate("roles").select('+password'); // Explicitly select password
+console.log(user,"user")
         if (!user) {
             return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
         }
@@ -41,6 +41,7 @@ export async function POST(req) {
             message: "Login successful",
             success: true,
             image:user?.image,
+            role:user?.roles[0].name||"Engineer",
             token // Send the token in the response
         }, { status: 200 });
 

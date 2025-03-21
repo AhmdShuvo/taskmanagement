@@ -52,7 +52,7 @@ const ProfileInfo = () => {
     return <p>Not logged in</p>;
   }
 
-  console.log(user,"user")
+  // console.log(user,"user")
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className=" cursor-pointer">

@@ -43,13 +43,14 @@ function useCurrentUser() {
                 setError(err.message || "An error occurred while fetching user.");
                 setCurrentUser(null);
             } finally {
+                // console.log(currentUser,"currentUser");
                 setIsLoading(false);
             }
         };
 
         fetchCurrentUser();
     }, []); // Empty dependency array: only run once on mount
-console.log(currentUser,"currentUser");
+// console.log(currentUser,"currentUser");
 
     return { currentUser, isLoading, error };
 }

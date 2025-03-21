@@ -324,7 +324,7 @@ const UserManagement = () => {
             </div>
         );
     }
-    console.log(roles, "roles from upddate");
+    // console.log(roles, "roles from upddate");
     return (
         <div className="container mx-auto p-4">
             <Card>

@@ -46,7 +46,7 @@ const customSelectStyles = {
       ? 'var(--primary)'
       : state.isFocused
       ? 'var(--accent)'
-      : null,
+      : 'var(--background)',
     color: state.isSelected ? 'var(--primary-foreground)' : 'var(--foreground)',
     cursor: 'pointer',
     fontSize: '0.875rem',
@@ -75,6 +75,11 @@ const customSelectStyles = {
     border: '1px solid var(--border)',
     boxShadow: 'var(--shadow)',
     zIndex: 100,
+    position: 'absolute',
+  }),
+  menuList: (provided) => ({
+    ...provided,
+    backgroundColor: 'var(--background)',
   }),
   placeholder: (provided) => ({
     ...provided,
@@ -385,6 +390,7 @@ const CreateTask = ({ open, onClose, onTaskCreated }) => {
                             setDatePickerOpen(false);
                           }}
                           initialFocus
+                          disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
                         />
                       </PopoverContent>
                     </Popover>

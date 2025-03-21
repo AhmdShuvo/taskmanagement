@@ -72,7 +72,7 @@ const LogInForm = () => {
       });
 
       const result = await response.json();  // Parse the JSON response
-console.log(result,"resilr")
+// console.log(result,"resilr")
       if (response.ok) {
         // console.log(result.token);
         
@@ -82,7 +82,7 @@ console.log(result,"resilr")
         // Make the action a promise
        await new Promise((resolve) => setTimeout(resolve, 1000));
        // if (window.document.cookie.indexOf('token')>-1) { //fake validation due to HTTOnly property
-        router.push("/dashboard"); //fake action but must be like that
+        {result?.role === "Engineer" ? router.push("/task") : router.push("/dashboard");} //fake action but must be like that
         //}
 
         reset();

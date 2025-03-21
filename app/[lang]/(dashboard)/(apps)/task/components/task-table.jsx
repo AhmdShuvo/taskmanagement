@@ -50,7 +50,7 @@ import { Grip, Menu } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { format, isThisWeek, isThisMonth, isToday, addDays, subDays } from "date-fns";
+import { format } from "date-fns";
 import useUserRoles from "@/hooks/useUserRoles";
 
 const statusColors = {
@@ -120,30 +120,47 @@ const TaskTable = ({ data, openSheet }) => {
     fetchFilterOptions();
   }, []);
 
-  // Custom filter function for due date
+  // Custom filter function for due dates
   const dueDateFilterFn = React.useCallback((row, columnId, value) => {
-    if (!value || value === 'all') return true;
+    if (!value) return true;
     
-    const dueDate = row.getValue(columnId);
+    const dueDate = row.original.dueDate;
     if (!dueDate) return value === 'none';
     
     const date = new Date(dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const isDateToday = date.toDateString() === today.toDateString();
+    
+    // Calculate this week's range
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    const isThisWeek = date >= startOfWeek && date <= endOfWeek;
+    
+    // Calculate this month's range
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const isThisMonth = date >= startOfMonth && date <= endOfMonth;
+    
+    // Is overdue
+    const isOverdue = date < today && !isDateToday;
+    
+    // Is upcoming (next 7 days but not today)
+    const inOneWeek = new Date(today);
+    inOneWeek.setDate(today.getDate() + 7);
+    const isUpcoming = date > today && date <= inOneWeek && !isDateToday;
     
     switch (value) {
-      case 'today':
-        return isToday(date);
-      case 'thisWeek':
-        return isThisWeek(date);
-      case 'thisMonth':
-        return isThisMonth(date);
-      case 'overdue':
-        return date < new Date() && !isToday(date);
-      case 'upcoming':
-        return date > new Date() && !isToday(date) && !isThisWeek(date);
-      case 'none':
-        return false;
-      default:
-        return true;
+      case 'today': return isDateToday;
+      case 'thisWeek': return isThisWeek;
+      case 'thisMonth': return isThisMonth;
+      case 'overdue': return isOverdue;
+      case 'upcoming': return isUpcoming;
+      case 'none': return false;
+      default: return true;
     }
   }, []);
   
@@ -375,13 +392,14 @@ const TaskTable = ({ data, openSheet }) => {
         try {
           const date = new Date(dueDate);
           const today = new Date();
-          const isOverdue = date < today && !isToday(date);
-          const isToday = date.toDateString() === today.toDateString();
+          // Define isToday before using it
+          const isDateToday = date.toDateString() === today.toDateString();
+          const isOverdue = date < today && !isDateToday;
 
           return (
             <div className="flex items-center gap-2">
-              <div className={`h-2 w-2 rounded-full flex-shrink-0 ${isOverdue ? 'bg-destructive' : isToday ? 'bg-warning' : 'bg-success'}`}></div>
-              <div className={`text-sm whitespace-nowrap ${isOverdue ? 'text-destructive font-medium' : isToday ? 'text-warning-foreground font-medium' : 'text-muted-foreground'}`}>
+              <div className={`h-2 w-2 rounded-full flex-shrink-0 ${isOverdue ? 'bg-destructive' : isDateToday ? 'bg-warning' : 'bg-success'}`}></div>
+              <div className={`text-sm whitespace-nowrap ${isOverdue ? 'text-destructive font-medium' : isDateToday ? 'text-warning-foreground font-medium' : 'text-muted-foreground'}`}>
                 {format(date, 'MMM dd, yyyy')}
               </div>
             </div>

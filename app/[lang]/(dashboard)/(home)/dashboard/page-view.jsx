@@ -26,6 +26,7 @@ import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, AlertTriangle } from "lucide-react";
+import TaskTable from '../../(apps)/task/components/task-table';
 
 const DashboardPageView = ({ trans }) => {
   const router = useRouter();
@@ -310,7 +311,41 @@ const DashboardPageView = ({ trans }) => {
           </CardContent>
         </Card>
       </div>
-
+      <Card className="border shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-semibold">Tasks Overview</CardTitle>
+              <CardDescription>All your tasks in one place</CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              className="gap-1" 
+              onClick={() => router.push('/task')}
+            >
+              <Icon icon="heroicons:document-text" className="w-4 h-4" />
+              <span>View All Tasks</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-6">
+              <Skeleton className="h-[400px] w-full rounded-md" />
+            </div>
+          ) : error ? (
+            <Alert variant="destructive" className="m-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : (
+            <TaskTable 
+              data={taskData.recentTasks || []} 
+              openSheet={() => router.push('/task')}
+            />
+          )}
+        </CardContent>
+      </Card>
       {/* Charts & Data Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 bg-card border-border">
@@ -475,6 +510,9 @@ const DashboardPageView = ({ trans }) => {
             </CardContent>
           </Card>
       </div>
+
+      {/* Task Table Section */}
+      
     </div>
   );
 };

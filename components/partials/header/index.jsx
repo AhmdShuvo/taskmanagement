@@ -61,7 +61,7 @@ const Header = ({ handleOpenSearch, trans }) => {
   const [isLoading, setIsLoading] = useState(false);
     // Track geolocation permission
   useEffect(() => {
-   console.log(user)
+  //  console.log(user)
   }, [user])
 
   const handleClockIn = async () => {
