@@ -1,6 +1,8 @@
 "use client";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +37,7 @@ import {
   AvatarGroup,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { ChevronDown, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, Plus, Trash2, X, Eye } from "lucide-react";
 import {
   Popover,
   PopoverClose,
@@ -122,6 +124,7 @@ const schema = z.object({
 });
 
 const TaskTable = ({ data, boards, onUpdateTask, boardID2 }) => {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
@@ -545,17 +548,27 @@ const TaskTable = ({ data, boards, onUpdateTask, boardID2 }) => {
                 color="secondary"
                 onClick={() => setOpen(true)}
               >
-                <Icon icon="heroicons:trash" className=" h-4 w-4  " />
+                <Icon icon="heroicons:trash" className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
                 variant="outline"
                 color="secondary"
-                className=" h-7 w-7 "
+                className="h-7 w-7"
                 onClick={() => onUpdateTask(row?.original)}
               >
-                <Icon icon="heroicons:pencil" className=" h-4 w-4  " />
+                <Icon icon="heroicons:pencil" className="h-4 w-4" />
               </Button>
+              <Link href={`/en/(dashboard)/(apps)/task/${row.original.id}`} passHref>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  color="secondary"
+                  className="h-7 w-7"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </>
         );

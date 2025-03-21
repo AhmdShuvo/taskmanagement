@@ -47,9 +47,15 @@ export const swapBoard = async (data) => {
 };
 // tasks
 export const getTasks = async () => {
-  const response = await api.get("/tasks");
-  // console.log(response.data)
-  return response.data;
+  try {
+    const response = await api.get("/tasks");
+    // If the API returns data with tasks property, return that, otherwise return the whole data
+    return response.data.tasks ? response.data.tasks : response.data;
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    // Return an empty array instead of throwing to prevent app crashes
+    return [];
+  }
 };
 
 export const createTask = async (board) => {
