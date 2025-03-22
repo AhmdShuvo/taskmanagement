@@ -145,8 +145,8 @@ const CreateTask = ({ open, onClose, onTaskCreated }) => {
         // Get the auth token from localStorage
         const token = localStorage.getItem('token');
         
-        // Fetch users
-        const usersResponse = await fetch('/api/users', {
+        // Fetch filtered users based on user's role and hierarchy
+        const usersResponse = await fetch('/api/users/filtered', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -155,7 +155,7 @@ const CreateTask = ({ open, onClose, onTaskCreated }) => {
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
           setUserOptions(usersData.data?.map(user => ({
-                        value: user._id,
+            value: user._id,
             label: user.name || user.email,
             avatar: user.image
           })) || []);
@@ -195,12 +195,12 @@ const CreateTask = ({ open, onClose, onTaskCreated }) => {
             value: priority.name,
             label: priority.label,
             color: priority.color
-                    })));
-                } else {
+          })));
+        } else {
           // Fallback to default priorities if API fails
           setPriorityOptions(priorities);
-                }
-              } catch (error) {
+        }
+      } catch (error) {
         console.error("Error fetching data:", error);
         // Fallback to default options
         setStatusOptions(statuses);

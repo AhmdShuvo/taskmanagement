@@ -144,10 +144,11 @@ const EditTask = ({ open, onClose, task, onTaskUpdated, canEditAssignments = fal
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Get the auth token from localStorage
         const token = localStorage.getItem('token');
         
-        // Fetch users
-        const usersResponse = await fetch('/api/users', {
+        // Fetch filtered users based on role and hierarchy
+        const usersResponse = await fetch('/api/users/filtered', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

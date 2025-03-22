@@ -1,12 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, X, ChevronDown, Search, User } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -21,7 +21,22 @@ import apple from "@/public/images/auth/apple.png";
 import twitter from "@/public/images/auth/twitter.png";
 import { SiteLogo } from "@/components/svg";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandLoading
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Autocomplete, AutocompleteItem } from "@/components/ui/autocomplete";
 
 const schema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters." }),
@@ -47,40 +62,123 @@ const RegForm = () => {
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
     mode: "all",
   });
   const [isVisible, setIsVisible] = React.useState(false);
-  const [seniorPersonOptions, setSeniorPersonOptions] = useState([]); // State for senior person options
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const searchTimeout = useRef(null);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  // Fetch senior person options
-  useEffect(() => {
-    const fetchSeniorPersons = async () => {
-      try {
-        const response = await fetch('/api/users'); // Fetch users from API
+  // Fetch users for autocomplete with pagination
+  const fetchUsers = useCallback(async (searchQuery = "", pageNum = 1, resetResults = false) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `/api/users/autocomplete?search=${encodeURIComponent(searchQuery)}&page=${pageNum}&limit=5`
+      );
 
-        if (response.ok) {
-          const data = await response.json();
-          setSeniorPersonOptions(data.data.map((user) => ({
-            value: user._id,
-            label: user.name,
-          })));
+      if (response.ok) {
+        const data = await response.json();
+        if (resetResults) {
+          setUsers(data.data);
         } else {
-          console.error("Failed to fetch senior persons:", response.status);
-          toast.error("Failed to load senior persons.");
+          setUsers(prev => [...prev, ...data.data]);
         }
-      } catch (error) {
-        console.error("Error fetching senior persons:", error);
-        toast.error("Error fetching senior persons from server.");
+        setHasMore(data.pagination.hasMore);
+        setPage(data.pagination.page);
+      } else {
+        console.error("Failed to fetch users:", response.status);
+        toast.error("Failed to load users.");
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Error loading users.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load initial users when popover opens
+  useEffect(() => {
+    if (open) {
+      // Reset users array when opening to ensure only 5 users are shown initially
+      setUsers([]);
+      setPage(1);
+      setHasMore(true);
+      fetchUsers("", 1, true);
+    }
+  }, [open, fetchUsers]);
+
+  // Handle search query change with debounce
+  const handleSearchChange = (value) => {
+    setQuery(value);
+    
+    // Clear the previous timeout
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+    
+    // Set a new timeout to delay the API call
+    searchTimeout.current = setTimeout(() => {
+      setPage(1);
+      fetchUsers(value, 1, true);
+    }, 300); // 300ms debounce
+  };
+  
+  // Clear timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
       }
     };
-
-    fetchSeniorPersons();
   }, []);
+
+  // Handle user selection
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    setValue("seniorPerson", user.value);
+    setOpen(false);
+  };
+
+  // Clear selection
+  const handleClearSelection = () => {
+    setSelectedUser(null);
+    setValue("seniorPerson", undefined);
+  };
+
+  // Load more users when scrolling to bottom
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      fetchUsers(query, page + 1, false);
+    }
+  };
+
+  // Handle scroll event for infinite loading
+  const handleScroll = (e) => {
+    const element = e.target;
+    const scrollTop = element.scrollTop;
+    const scrollHeight = element.scrollHeight;
+    const clientHeight = element.clientHeight;
+    
+    // Check if scrolled to bottom (with a small threshold)
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    
+    if (isAtBottom && hasMore && !loading) {
+      handleLoadMore();
+    }
+  };
 
   const onSubmit = (data) => {
     startTransition(async () => {
@@ -94,6 +192,7 @@ const RegForm = () => {
       }
     });
   };
+
   return (
     <div className="w-full">
       <Link href="/dashboard" className="inline-block">
@@ -192,23 +291,105 @@ const RegForm = () => {
             )}
           </div>
           <div>
-            <Label htmlFor="seniorPerson" className="mb-2 font-medium text-default-600">Senior Person</Label>
+            <Label htmlFor="seniorPerson" className="mb-2 font-medium text-default-600">
+              Senior Person
+            </Label>
             <Controller
               control={control}
               name="seniorPerson"
               render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Senior Person" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {seniorPersonOptions.map((person) => (
-                      <SelectItem key={person.value} value={person.value}>
-                        {person.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Autocomplete
+                  label="team members"
+                  placeholder="Search team members..."
+                  triggerPlaceholder="Select senior person..."
+                  loading={loading}
+                  selectedValue={selectedUser}
+                  onSelect={handleSelectUser}
+                  onSearch={handleSearchChange}
+                  onScrollEnd={handleLoadMore}
+                  hasMore={hasMore}
+                  noItemsMessage="No matching users found"
+                  useGridLayout={true}
+                  gridCols={2}
+                  renderEmpty={() => (
+                    <div className="py-6 text-center">
+                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto">
+                        <User className="h-6 w-6 text-muted-foreground opacity-50" />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-3">No matching users found</p>
+                    </div>
+                  )}
+                  renderLoading={() => (
+                    <div className="py-8 text-center">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-3">Searching for talents...</p>
+                    </div>
+                  )}
+                  renderSelectedItem={(user) => (
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-6 w-6 rounded-lg border shadow-sm">
+                        <AvatarImage src={user.image} alt={user.label} />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {user.label.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium leading-none mb-1">{user.label}</span>
+                        {user.roles && (
+                          <div className="flex flex-wrap gap-1">
+                            {Array.isArray(user.roles) ? 
+                              user.roles.map((role, idx) => (
+                                <span key={idx} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium leading-none">
+                                  {role}
+                                </span>
+                              )) : 
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium leading-none">
+                                {user.roles}
+                              </span>
+                            }
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                >
+                  {users.map((user) => (
+                    <AutocompleteItem 
+                      key={user.id} 
+                      value={user}
+                      isSelected={selectedUser && selectedUser.id === user.id}
+                      className="rounded-lg p-2 cursor-pointer transition-all hover:scale-[1.02] data-[selected=true]:bg-primary/10 hover:bg-primary/5"
+                      icon={
+                        <Avatar className="h-8 w-8 rounded-lg border shadow-sm">
+                          <AvatarImage src={user.image} alt={user.label} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {user.label.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      }
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium leading-none mb-1">{user.label}</span>
+                        {user.roles && (
+                          <div className="flex flex-wrap gap-1">
+                            {Array.isArray(user.roles) ? 
+                              user.roles.map((role, idx) => (
+                                <span key={idx} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium leading-none">
+                                  {role}
+                                </span>
+                              )) : 
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium leading-none">
+                                {user.roles}
+                              </span>
+                            }
+                          </div>
+                        )}
+                      </div>
+                    </AutocompleteItem>
+                  ))}
+                </Autocomplete>
               )}
             />
           </div>

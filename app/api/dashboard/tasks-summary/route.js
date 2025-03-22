@@ -4,80 +4,8 @@ import Task from "@/lib/models/Task";
 import User from "@/lib/models/User";
 import Role from "@/lib/models/Role";
 import mongoose from "mongoose";
-import jwt from 'jsonwebtoken';
 import { headers } from "next/headers";
-
-// Helper function to handle token-based authentication
-async function authenticateRequest() {
-  try {
-    const headersList = headers();
-    // Get authorization header
-    const authHeader = headersList.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { 
-        success: false, 
-        error: { 
-          message: "Authentication required. Please sign in.", 
-          status: 401 
-        } 
-      };
-    }
-    
-    // Extract token
-    const token = authHeader.split(' ')[1];
-    
-    if (!token) {
-      return { 
-        success: false, 
-        error: { 
-          message: "Invalid authentication token", 
-          status: 401 
-        } 
-      };
-    }
-    
-    // Verify token
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Find user from database based on decoded user ID including roles
-      await dbConnect();
-      const user = await User.findById(decoded.id).populate('roles');
-      
-      if (!user) {
-        return {
-          success: false,
-          error: {
-            message: "User not found",
-            status: 401
-          }
-        };
-      }
-      
-      return { 
-        success: true, 
-        user 
-      };
-    } catch (err) {
-      return {
-        success: false,
-        error: {
-          message: "Invalid or expired token",
-          status: 401
-        }
-      };
-    }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: { 
-        message: "Authentication error occurred", 
-        status: 500 
-      } 
-    };
-  }
-}
+import { authenticateRequest } from '@/lib/authUtils';
 
 // Check if user has CEO role
 function isCEO(user) {
@@ -125,19 +53,9 @@ export async function GET(request) {
     // Apply role-based filtering for tasks
     let taskFilter = { ...dateFilter };
     
-    // If not a CEO, only show tasks assigned to or created by the user
+    // If not a CEO, only show tasks the user has access to via the canAccess field
     if (!isCeoUser) {
-      // Get subordinates (users who have this user as their senior)
-      const subordinates = await getSubordinateUsers(currentUser._id);
-      const subordinateIds = subordinates.map(sub => sub._id);
-      
-      // Add the current user to the list of IDs
-      const relevantUserIds = [currentUser._id, ...subordinateIds];
-      
-      taskFilter.$or = [
-        { assignedTo: { $in: relevantUserIds } },
-        { createdBy: { $in: relevantUserIds } }
-      ];
+      taskFilter.canAccess = currentUser._id;
     }
     
     // Get task counts by status with role-based restrictions
@@ -166,11 +84,12 @@ export async function GET(request) {
       color: priorityColors[item._id] || '#6B7280'
     }));
     
-    // Get recent tasks with role-based restrictions
+    // Get recent tasks
     const recentTasks = await Task.find(taskFilter)
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })
       .limit(5)
       .populate('assignedTo', 'name email image')
+      .populate('createdBy', 'name email image')
       .lean();
     
     const formattedRecentTasks = recentTasks.map(task => ({

@@ -1,83 +1,11 @@
-// app/tasks/route.js
+// app/api/tasks/route.js
 import { NextResponse } from "next/server";
 import dbConnect from '@/lib/dbConnect';
 import Task from "@/lib/models/Task";
 import User from "@/lib/models/User";
-import jwt from 'jsonwebtoken';
 import { headers } from "next/headers";
-import { isCEO } from "@/lib/roleUtils";
-
-// Helper function to handle token-based authentication
-async function authenticateRequest() {
-  try {
-    const headersList = headers();
-    // Get authorization header
-    const authHeader = headersList.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { 
-        success: false, 
-        error: { 
-          message: "Authentication required. Please sign in.", 
-          status: 401 
-        } 
-      };
-    }
-    
-    // Extract token
-    const token = authHeader.split(' ')[1];
-    
-    if (!token) {
-      return { 
-        success: false, 
-        error: { 
-          message: "Invalid authentication token", 
-          status: 401 
-        } 
-      };
-    }
-    
-    // Verify token
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Find user from database based on decoded user ID
-      await dbConnect();
-      const user = await User.findById(decoded.id).populate('roles');
-      
-      if (!user) {
-        return {
-          success: false,
-          error: {
-            message: "User not found",
-            status: 401
-          }
-        };
-      }
-      
-      return { 
-        success: true, 
-        user 
-      };
-    } catch (err) {
-      return {
-        success: false,
-        error: {
-          message: "Invalid or expired token",
-          status: 401
-        }
-      };
-    }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: { 
-        message: "Authentication error occurred", 
-        status: 500 
-      } 
-    };
-  }
-}
+import { isCEO, getTaskAccessList } from "@/lib/roleUtils";
+import { authenticateRequest } from '@/lib/authUtils';
 
 // Get users who have the current user as their senior
 async function getSubordinateUsers(userId) {
@@ -117,19 +45,10 @@ export async function GET(request) {
     // Build query
     let query = {};
     
-    // Apply role-based filtering
+    // Apply role-based access control using the canAccess field
     if (!isCeoUser) {
-      // Get subordinates (users who have this user as their senior)
-      const subordinates = await getSubordinateUsers(currentUser._id);
-      const subordinateIds = subordinates.map(sub => sub._id);
-      
-      // Add the current user to the list of IDs
-      const relevantUserIds = [currentUser._id, ...subordinateIds];
-      
-      query.$or = [
-        { assignedTo: { $in: relevantUserIds } },
-        { createdBy: { $in: relevantUserIds } }
-      ];
+      // Only show tasks where the current user has access
+      query.canAccess = currentUser._id;
     }
     
     // Add status filter if provided
@@ -161,6 +80,7 @@ export async function GET(request) {
       .limit(limit)
       .populate('assignedTo', 'name email image')
       .populate('createdBy', 'name email image')
+      .populate('canAccess', 'name email') // Also populate canAccess for debugging
       .lean();
     
     // Get total count
@@ -189,9 +109,9 @@ export async function GET(request) {
 }
 
 // Create a new task
-export async function POST(request) {
+export async function POST(req) {
   await dbConnect();
-  
+
   try {
     // Authenticate the request
     const auth = await authenticateRequest();
@@ -200,33 +120,43 @@ export async function POST(request) {
     }
     
     const currentUser = auth.user;
-    
-    // Populate roles to check user permissions
-    await currentUser.populate('roles');
-    
-    // Extract role names
     const userRoles = currentUser.roles.map(role => 
       typeof role === 'object' ? role.name : role
     );
     
-    // Check if user is CEO or Engineer - they cannot create tasks
+    // Check if user can create tasks
     if (userRoles.includes('CEO') || userRoles.includes('Engineer')) {
-      return NextResponse.json({ 
-        message: "You don't have permission to create tasks with your current role" 
-      }, { status: 403 });
+      return NextResponse.json(
+        { message: "You don't have permission to create tasks" },
+        { status: 403 }
+      );
     }
     
-    // Parse request body
-    const body = await request.json();
+    const body = await req.json();
     
-    // Set the current user as the task creator
+    // Validate required fields
+    if (!body.title) {
+      return NextResponse.json({ message: "Title is required" }, { status: 400 });
+    }
+    
+    // Generate the access list based on creator's hierarchy
+    const accessList = await getTaskAccessList(currentUser._id);
+    
+    // Ensure creator ID is set to current user
     body.createdBy = currentUser._id;
+    
+    // Add the accessList to canAccess field
+    body.canAccess = accessList;
     
     // Create the task
     const task = await Task.create(body);
     
-    // Return the new task
-    return NextResponse.json(task, { status: 201 });
+    // Populate reference fields for the response
+    const populatedTask = await Task.findById(task._id)
+      .populate('assignedTo', 'name email image')
+      .populate('createdBy', 'name email image');
+    
+    return NextResponse.json(populatedTask, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
     return NextResponse.json(

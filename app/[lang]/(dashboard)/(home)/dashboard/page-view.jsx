@@ -471,7 +471,7 @@ const DashboardPageView = ({ trans }) => {
                   <div 
                     key={task.id} 
                     className="flex items-center justify-between p-3 bg-muted/40 rounded-md border border-border/50 hover:bg-muted/80 transition-colors cursor-pointer"
-                    onClick={() => router.push(`/task/${task.id}`)}
+                    onClick={() => router.push(`/task/${task._id || task.id}`)}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-1.5 h-10 rounded-sm ${getStatusColor(task.status).split(' ')[0]}`}></div>
