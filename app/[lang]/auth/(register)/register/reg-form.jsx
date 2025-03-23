@@ -82,14 +82,14 @@ const RegForm = () => {
 
   // Fetch users for autocomplete with pagination
   const fetchUsers = useCallback(async (searchQuery = "", pageNum = 1, resetResults = false) => {
-    try {
+      try {
       setLoading(true);
       const response = await fetch(
         `/api/users/autocomplete?search=${encodeURIComponent(searchQuery)}&page=${pageNum}&limit=5`
       );
 
-      if (response.ok) {
-        const data = await response.json();
+        if (response.ok) {
+          const data = await response.json();
         if (resetResults) {
           setUsers(data.data);
         } else {
@@ -100,8 +100,8 @@ const RegForm = () => {
       } else {
         console.error("Failed to fetch users:", response.status);
         toast.error("Failed to load users.");
-      }
-    } catch (error) {
+        }
+      } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Error loading users.");
     } finally {

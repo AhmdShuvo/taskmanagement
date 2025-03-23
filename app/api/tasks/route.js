@@ -145,6 +145,26 @@ export async function POST(req) {
     // Ensure creator ID is set to current user
     body.createdBy = currentUser._id;
     
+    // Add the assignedTo users to the canAccess list
+    if (body.assignedTo && body.assignedTo.length > 0) {
+      // Convert to array if it's not already
+      const assignedToArray = Array.isArray(body.assignedTo) ? body.assignedTo : [body.assignedTo];
+      
+      // Create a Set from accessList to avoid duplicates
+      const accessSet = new Set(accessList.map(id => id.toString()));
+      
+      // Add each assignedTo ID to the Set if not already included
+      assignedToArray.forEach(userId => {
+        const userIdStr = userId.toString();
+        if (!accessSet.has(userIdStr)) {
+          accessSet.add(userIdStr);
+          accessList.push(userId);
+        }
+      });
+      
+      console.log(`Added ${assignedToArray.length} assigned users to canAccess list`);
+    }
+    
     // Add the accessList to canAccess field
     body.canAccess = accessList;
     

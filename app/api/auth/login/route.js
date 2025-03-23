@@ -13,7 +13,7 @@ export async function POST(req) {
 
         // Check if user exists
         const user = await User.findOne({ email }).populate("roles").select('+password'); // Explicitly select password
-console.log(user,"user")
+// console.log(user,"user")
         if (!user) {
             return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
         }

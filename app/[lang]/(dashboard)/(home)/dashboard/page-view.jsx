@@ -27,6 +27,8 @@ import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import TaskTable from '../../(apps)/task/components/task-table';
+import { api } from '@/config/axios.config';
+import ClockInDetails from './components/clock-in-details';
 
 const DashboardPageView = ({ trans }) => {
   const router = useRouter();
@@ -44,6 +46,8 @@ const DashboardPageView = ({ trans }) => {
     taskCompletionTrend: [],
     tasksByAssignee: []
   });
+  const [clockInData, setClockInData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
@@ -88,6 +92,32 @@ const DashboardPageView = ({ trans }) => {
       setLoading(false);
     }
   };
+
+  // Fetch clock-in summary data
+  useEffect(() => {
+    const fetchClockInData = async () => {
+      try {
+        setIsLoading(true);
+        // Get summarized clock-in data for the last 30 days
+        const response = await api.get('/clock-in/summary');
+        
+        if (response.data && response.data.success) {
+          setClockInData(response.data);
+          console.log('Loaded clock-in data:', response.data);
+        } else {
+          setError('Failed to load clock-in data');
+        }
+      } catch (err) {
+        console.error('Error fetching clock-in data:', err);
+        setError('Error loading clock-in information');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Fetch for all users - remove isEngineer condition
+    fetchClockInData();
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -140,24 +170,6 @@ const DashboardPageView = ({ trans }) => {
       </div>
     </div>
   );
-
-  // if (loading) {
-  //   return (
-  //     <div className="space-y-6">
-  //       <div className="flex items-center flex-wrap justify-between gap-4">
-  //         <div className="text-2xl font-bold text-default-900">
-  //           Task Dashboard
-  //         </div>
-  //         <div className="flex items-center gap-3">
-  //           <DatePickerWithRange />
-  //           <Skeleton className="h-10 w-32" />
-  //         </div>
-  //       </div>
-        
-  //       {renderSkeleton()}
-  //     </div>
-  //   );
-  // }
 
   if (error) {
     return (
@@ -511,8 +523,262 @@ const DashboardPageView = ({ trans }) => {
           </Card>
       </div>
 
-      {/* Task Table Section */}
+      {/* Clock-in section - now visible to all users */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4">{trans?.dashboard?.clockInInfo || 'Clock-in Information'}</h2>
+        
+        {isLoading ? (
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow">
+            <p className="text-red-500">{error}</p>
+            <button 
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={() => {
+                setIsLoading(true);
+                setError(null);
+                // Retry fetching data
+                fetchClockInData();
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow">
+            {clockInData && (
+              <>
+                {/* Clock-in summary stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 bg-blue-50 dark:bg-slate-700 rounded-lg">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Clock-ins</h3>
+                    <p className="text-2xl font-bold">{clockInData.summary.totalClockIns}</p>
+                    <p className="text-sm text-gray-500">
+                      From {clockInData.summary.dateRange.start} to {clockInData.summary.dateRange.end}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-green-50 dark:bg-slate-700 rounded-lg">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Users</h3>
+                    <p className="text-2xl font-bold">{clockInData.summary.currentlyActiveUsers}</p>
+                    <p className="text-sm text-gray-500">Currently clocked in</p>
+                  </div>
+                  <div className="p-4 bg-purple-50 dark:bg-slate-700 rounded-lg">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Unique Users</h3>
+                    <p className="text-2xl font-bold">{clockInData.summary.uniqueUserCount}</p>
+                    <p className="text-sm text-gray-500">
+                      {clockInData.summary.averagePerUser} clock-ins per user
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Clock-in time series and top locations */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Time Series Chart */}
+                  <div className="p-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <h3 className="text-base font-semibold mb-4">Clock-in Activity</h3>
+                    {clockInData.timeSeries && clockInData.timeSeries.length > 0 ? (
+                      <div className="h-64">
+                        {/* Simple visualization of time series data */}
+                        <div className="flex flex-col space-y-2">
+                          {clockInData.timeSeries.slice(-7).map(item => (
+                            <div key={item.period} className="flex items-center">
+                              <span className="w-24 text-sm text-gray-500">{item.period}</span>
+                              <div className="flex-1 h-5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500" 
+                                  style={{ 
+                                    width: `${Math.min(100, (item.count / Math.max(...clockInData.timeSeries.map(i => i.count))) * 100)}%` 
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="ml-2 text-sm font-medium">{item.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">No activity data available</p>
+                    )}
+                  </div>
+                  
+                  {/* Top Locations */}
+                  <div className="p-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <h3 className="text-base font-semibold mb-4">Top Clock-in Locations</h3>
+                    {clockInData.topLocations && clockInData.topLocations.length > 0 ? (
+                      <div className="space-y-3">
+                        {clockInData.topLocations.slice(0, 5).map((location, index) => (
+                          <div key={index} className="flex justify-between items-center">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                <span className="text-blue-800 dark:text-blue-200 text-sm font-medium">{index + 1}</span>
+                              </div>
+                              <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[180px]">
+                                  {location.location}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
+                              {location.count} clock-ins
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">No location data available</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Top Users */}
+                <div className="mt-6">
+                  <h3 className="text-base font-semibold mb-4">Top Users by Clock-ins</h3>
+                  {clockInData.topUsers && clockInData.topUsers.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              User
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Clock-ins
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              First Clock-in
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Last Clock-in
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-700">
+                          {clockInData.topUsers.map((user, index) => (
+                            <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-700'}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                    <span className="text-gray-500 dark:text-gray-300">{user.name.charAt(0)}</span>
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                  {user.count}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(user.firstClockIn).toLocaleString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(user.lastClockIn).toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No user data available</p>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
       
+      {/* Add full detailed clock-in records section */}
+      <div className="mb-6">
+        <ClockInDetails />
+      </div>
+      
+      {/* Other dashboard sections */}
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">{trans?.dashboard?.recentActivity || 'Recent Activity'}</h2>
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium">Task completed: Website redesign</p>
+                <p className="text-xs text-gray-500">2 hours ago</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium">Alex commented on Database Migration</p>
+                <p className="text-xs text-gray-500">Yesterday</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium">New task assigned: API Integration</p>
+                <p className="text-xs text-gray-500">3 days ago</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">{trans?.dashboard?.upcomingDeadlines || 'Upcoming Deadlines'}</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium">Mobile App UI Updates</p>
+                <p className="text-xs text-gray-500">High Priority</p>
+              </div>
+              <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-800">Tomorrow</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium">Dashboard Analytics</p>
+                <p className="text-xs text-gray-500">Medium Priority</p>
+              </div>
+              <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">In 3 days</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium">Product Documentation</p>
+                <p className="text-xs text-gray-500">Low Priority</p>
+              </div>
+              <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Next week</span>
+            </div>
+          </div>
+        </div>
+      </div> */}
     </div>
   );
 };
