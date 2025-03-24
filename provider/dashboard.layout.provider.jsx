@@ -22,6 +22,7 @@ const DashBoardLayoutProvider = ({ children, trans }) => {
   const isMobile = useMediaQuery("(min-width: 768px)");
   const { currentUser, isLoading, error } = useCurrentUser();
   const router = useRouter();
+  
 
   useEffect(() => {
     if (!isLoading) {

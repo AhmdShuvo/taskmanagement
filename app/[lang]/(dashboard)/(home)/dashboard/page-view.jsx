@@ -29,7 +29,7 @@ import { RefreshCw, AlertTriangle } from "lucide-react";
 import TaskTable from '../../(apps)/task/components/task-table';
 import { api } from '@/config/axios.config';
 import ClockInDetails from './components/clock-in-details';
-
+import useUserRoles from "@/hooks/useUserRoles"
 const DashboardPageView = ({ trans }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ const DashboardPageView = ({ trans }) => {
   });
   const [clockInData, setClockInData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const { isCEO,isProjectLead,isEngineer, canManageTasks, isLoading: rolesLoading } = useUserRoles();
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -238,7 +238,7 @@ const DashboardPageView = ({ trans }) => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+                <p className="text-sm font-medium text-muted-foreground">{isProjectLead()?"Total Assigned Tasks":"Total Tasks"}</p>
                 <h3 className="text-2xl font-bold mt-1">{taskData.totalTasks}</h3>
               </div>
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -524,7 +524,7 @@ const DashboardPageView = ({ trans }) => {
       </div>
 
       {/* Clock-in section - now visible to all users */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">{trans?.dashboard?.clockInInfo || 'Clock-in Information'}</h2>
         
         {isLoading ? (
@@ -555,7 +555,7 @@ const DashboardPageView = ({ trans }) => {
           <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow">
             {clockInData && (
               <>
-                {/* Clock-in summary stats */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="p-4 bg-blue-50 dark:bg-slate-700 rounded-lg">
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Clock-ins</h3>
@@ -578,14 +578,14 @@ const DashboardPageView = ({ trans }) => {
                   </div>
                 </div>
                 
-                {/* Clock-in time series and top locations */}
+                
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Time Series Chart */}
+                  
                   <div className="p-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg">
                     <h3 className="text-base font-semibold mb-4">Clock-in Activity</h3>
                     {clockInData.timeSeries && clockInData.timeSeries.length > 0 ? (
                       <div className="h-64">
-                        {/* Simple visualization of time series data */}
+                       
                         <div className="flex flex-col space-y-2">
                           {clockInData.timeSeries.slice(-7).map(item => (
                             <div key={item.period} className="flex items-center">
@@ -608,7 +608,7 @@ const DashboardPageView = ({ trans }) => {
                     )}
                   </div>
                   
-                  {/* Top Locations */}
+                  
                   <div className="p-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg">
                     <h3 className="text-base font-semibold mb-4">Top Clock-in Locations</h3>
                     {clockInData.topLocations && clockInData.topLocations.length > 0 ? (
@@ -637,7 +637,7 @@ const DashboardPageView = ({ trans }) => {
                   </div>
                 </div>
                 
-                {/* Top Users */}
+                
                 <div className="mt-6">
                   <h3 className="text-base font-semibold mb-4">Top Users by Clock-ins</h3>
                   {clockInData.topUsers && clockInData.topUsers.length > 0 ? (
@@ -697,12 +697,14 @@ const DashboardPageView = ({ trans }) => {
             )}
           </div>
         )}
-      </div>
+      </div> */}
       
       {/* Add full detailed clock-in records section */}
-      <div className="mb-6">
-        <ClockInDetails />
-      </div>
+      {(isProjectLead() || isCEO()) && (
+  <div className="mb-6">
+    <ClockInDetails />
+  </div>
+)}
       
       {/* Other dashboard sections */}
       {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -776,8 +778,8 @@ const DashboardPageView = ({ trans }) => {
               </div>
               <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Next week</span>
             </div>
-          </div>
         </div>
+      </div>
       </div> */}
     </div>
   );

@@ -21,9 +21,11 @@ import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import useUser from "@/hooks/userUser";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import useUserRoles from "@/hooks/useUserRoles";
 
 const NavTools = ({ isDesktop, isMobile, sidebarType, handleClockIn, handleClockOut, clockedIn }) => { // Add handleClockIn prop
   const { currentUser,  error } = useCurrentUser();
+  const { isEngineer, canManageTasks, isLoading: rolesLoading } = useUserRoles();
   return (
     <div className="nav-tools flex items-center  gap-2">
       {/* {isDesktop && <Language />} */}
@@ -33,11 +35,14 @@ const NavTools = ({ isDesktop, isMobile, sidebarType, handleClockIn, handleClock
       {/* <Inbox /> */}
       {/* <NotificationMessage /> */}
       {/* Conditionally render the clock-in button based on the clockedIn state */}
-      {currentUser?.clockedIn||clockedIn? (
-        <Button onClick={handleClockOut}>Clock Out</Button>
-      ) : (
-        <Button onClick={handleClockIn}>Clock In</Button>
-      )}
+      {isEngineer() && (
+  currentUser?.clockedIn || clockedIn ? (
+    <Button onClick={handleClockOut}>Clock Out</Button>
+  ) : (
+    <Button onClick={handleClockIn}>Clock In</Button>
+  )
+)}
+
 
       <div className="ltr:pl-2 rtl:pr-2">
         <ProfileInfo />
